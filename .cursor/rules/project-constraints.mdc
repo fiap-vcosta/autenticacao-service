@@ -1,0 +1,13 @@
+---
+description: Escopo do autenticacao-service
+alwaysApply: true
+---
+
+# Restrições do projeto (`autenticacao-service`)
+
+- Escopo: login de staff e JWT de cliente (**RS256**). Persistência em **Firestore** (database nomeado).
+- Consulta o documento do cliente na API interna do administrativo.
+- Expõe **JWKS**.
+- Não é dono de ordem de serviço nem de regras de negócio de staff além de usuários e tokens.
+- Não inventar features fora desse escopo.
+- README autocontido: sem referências a pastas fora do Git nem a numeração de documentos pessoais.
