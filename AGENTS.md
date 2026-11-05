@@ -18,6 +18,8 @@ Serviço de autenticação: login de staff, JWT de cliente (RS256) e JWKS. Org [
 | `src/Api` | Login, token cliente, JWKS, health |
 | `tests/UnitTests` | Gate Coverlet 80% (exclui `FirestoreUsuarioRecordStore` — adapter SDK) |
 | `tests/IntegrationTests` | HTTP + fakes |
+| `terraform/` | Firestore nomeado + secret JWT RS256 |
+| `k8s/` | Deployment, Service, HPA, KSA, HTTPRoute `/autenticacao` |
 
 ## Fora de escopo
 
@@ -40,5 +42,6 @@ dotnet test tests/IntegrationTests/IntegrationTests.csproj -c Release
 docker compose up firestore -d
 export FIRESTORE_EMULATOR_HOST=127.0.0.1:8085
 dotnet run --project src/Api/Api.csproj
-# Compose completo: docker compose --profile app up --build  → :8081
+# Compose completo: docker compose --profile app up --build → :8081
+cd terraform && terraform fmt -check && terraform init -backend=false && terraform validate
 ```

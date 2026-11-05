@@ -18,6 +18,8 @@ Requisitos: [`docs/01_requisitos.md`](docs/01_requisitos.md).
 | `src/Api` | `POST /autenticacao/login`, `POST /autenticacao/clientes/token`, JWKS, health |
 | `tests/UnitTests` | Gate Coverlet ≥ 80% line/branch |
 | `tests/IntegrationTests` | HTTP + fakes (store em memória / administrativo stub) |
+| `terraform/` | Firestore `autenticacao` + secret SM da chave RS256 |
+| `k8s/` | Deployment (Datadog), Service, HPA, KSA, HTTPRoute `/autenticacao` |
 | `docs/requestly/` | Collection Requestly (Docker / Local / GCP) |
 
 ## Endpoints
@@ -54,7 +56,7 @@ JWT cliente: suba o `administrativo-service` com o **mesmo** `SERVICE_AUTH_KEY`,
 
 Requestly: importar [`docs/requestly/autenticacao.requestly.json`](docs/requestly/autenticacao.requestly.json).
 
-Localmente o Firestore usa o database `(default)` do emulador. Na GCP (parte 4) o database nomeado é `autenticacao`.
+Localmente o Firestore usa o database `(default)` do emulador. Na GCP o database nomeado é `autenticacao`.
 
 ## Testes
 
@@ -71,4 +73,37 @@ dotnet test tests/IntegrationTests/IntegrationTests.csproj -c Release
 
 ## CI
 
-Caller do reusable `ci-dotnet` (`fiap-vcosta/actions`) com SonarCloud `fiap-vcosta_autenticacao-service` e restore do `building-blocks` via GitHub Packages.
+Callers dos reusables em [`fiap-vcosta/actions`](https://github.com/fiap-vcosta/actions):
+
+- **dotnet** — InspectCode, unit (gate 80%), integração, SonarCloud (`fiap-vcosta_autenticacao-service`)
+- **terraform** — `fmt` / `validate` no root `terraform/`
+
+## Terraform (GCP)
+
+Root module: [`terraform/`](terraform/). State GCS prefix `autenticacao-service`.
+
+| Recurso | Papel |
+|---------|--------|
+| Firestore database `autenticacao` | Persistência de usuários staff |
+| Secret SM `autenticacao-service-jwt-signing-key` | Chave privada RS256 (`Jwt__SigningKeyPem`; `\n` escapados) |
+
+Uma única chave assina JWT staff e cliente (claims/audiences distintos). A chave privada passa pelo tfstate ao gerar o secret (risco aceito na demo; sem rotação).
+
+`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem` + `ServiceAuth__Key` do secret `administrativo-service-service-auth-key`, compartilhado) e do org secret `DD_API_KEY`.
+
+## CD (GCP)
+
+| Workflow | Gatilho | Papel |
+|----------|---------|--------|
+| `build-push` | push em `main` | Imagem no Artifact Registry |
+| `tf-apply` / `tf-destroy` | `workflow_dispatch` | Firestore + secret JWT |
+| `deploy` | `workflow_dispatch` | Secret k8s + manifests + smoke em `https://vcosta-fiap.online/autenticacao/health` |
+
+Pré-requisitos do `deploy`:
+
+1. Cluster + Gateway do [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) no ar
+2. `tf-apply` deste repo (Firestore + JWT no SM)
+3. Secret `administrativo-service-service-auth-key` já criado (`tf-apply` do administrativo) — mesma chave para `/system/administrativo`
+4. Imagem publicada pelo `build-push`
+
+O `HTTPRoute` expõe `/autenticacao`. No cluster, a app chama o administrativo em `http://administrativo-service`.
