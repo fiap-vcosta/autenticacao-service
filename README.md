@@ -89,7 +89,7 @@ Root module: [`terraform/`](terraform/). State GCS prefix `autenticacao-service`
 
 Uma única chave assina JWT staff e cliente (claims/audiences distintos). A chave privada passa pelo tfstate ao gerar o secret (risco aceito na demo; sem rotação).
 
-`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem` + `ServiceAuth__Key` do secret `administrativo-service-service-auth-key`, compartilhado) e do org secret `DD_API_KEY`.
+`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem`) e dos org secrets `SERVICE_AUTH_KEY` + `DD_API_KEY`. Quando o administrativo tiver `tf-apply` (depende do `infra-db`), o caller pode voltar a apontar `service_auth_sm_secret` para o secret compartilhado do administrativo.
 
 ## CD (GCP)
 
@@ -103,7 +103,7 @@ Pré-requisitos do `deploy`:
 
 1. Cluster + Gateway do [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) no ar
 2. `tf-apply` deste repo (Firestore + JWT no SM)
-3. Secret `administrativo-service-service-auth-key` já criado (`tf-apply` do administrativo) — mesma chave para `/system/administrativo`
+3. Org secret `SERVICE_AUTH_KEY` (JWT cliente só funciona quando o administrativo estiver no ar com a **mesma** chave)
 4. Imagem publicada pelo `build-push`
 
 O `HTTPRoute` expõe `/autenticacao`. No cluster, a app chama o administrativo em `http://administrativo-service`.
