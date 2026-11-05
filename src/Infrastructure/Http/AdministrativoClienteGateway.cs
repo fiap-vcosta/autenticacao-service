@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text.Json;
 using Application.Abstractions.Gateways;
 
@@ -7,11 +6,6 @@ namespace Infrastructure.Http;
 
 public sealed class AdministrativoClienteGateway(HttpClient httpClient) : IAdministrativoClienteGateway
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     public async Task<AdministrativoClienteLookupResult> ConsultarPorDocumentoAsync(
         string documento,
         CancellationToken cancellationToken = default)
@@ -36,10 +30,8 @@ public sealed class AdministrativoClienteGateway(HttpClient httpClient) : IAdmin
 
         if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            var body = await response.Content.ReadFromJsonAsync<AdministrativoErrorsBody>(
-                JsonOptions,
-                cancellationToken);
-            var errors = body?.Errors ?? ["Documento inválido."];
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            var errors = ParseErrors(json);
             return new AdministrativoClienteLookupResult(
                 AdministrativoClienteLookupStatus.InvalidDocumento,
                 errors);
@@ -51,8 +43,36 @@ public sealed class AdministrativoClienteGateway(HttpClient httpClient) : IAdmin
             []);
     }
 
-    private sealed class AdministrativoErrorsBody
+    private static IReadOnlyList<string> ParseErrors(string json)
     {
-        public List<string>? Errors { get; init; }
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return ["Documento inválido."];
+        }
+
+        using var document = JsonDocument.Parse(json);
+        if (!TryGetErrorsProperty(document.RootElement, out var errorsElement) ||
+            errorsElement.ValueKind != JsonValueKind.Array)
+        {
+            return ["Documento inválido."];
+        }
+
+        var errors = errorsElement.EnumerateArray()
+            .Select(item => item.GetString())
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Cast<string>()
+            .ToList();
+
+        return errors.Count > 0 ? errors : ["Documento inválido."];
+    }
+
+    private static bool TryGetErrorsProperty(JsonElement root, out JsonElement errorsElement)
+    {
+        if (root.TryGetProperty("errors", out errorsElement))
+        {
+            return true;
+        }
+
+        return root.TryGetProperty("Errors", out errorsElement);
     }
 }

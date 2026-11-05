@@ -1,12 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace IntegrationTests;
 
 [Collection(nameof(IntegrationFixture))]
 public class AuthEndpointsTests(CustomWebApplicationFactory factory)
 {
+    private sealed record TokenBody([property: JsonPropertyName("token")] string? Token);
+
     [Fact]
     public async Task Health_ReturnsOk()
     {
@@ -97,8 +100,19 @@ public class AuthEndpointsTests(CustomWebApplicationFactory factory)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private sealed class TokenBody
+    [Fact]
+    public async Task ClientesToken_WhenDocumentoInvalid_ReturnsBadRequest()
     {
-        public string? Token { get; init; }
+        // Arrange
+        factory.Administrativo.DocumentosInvalidos.Add("documento-invalido");
+        var client = factory.CreateClient();
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            "/autenticacao/clientes/token",
+            new { documento = "documento-invalido" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

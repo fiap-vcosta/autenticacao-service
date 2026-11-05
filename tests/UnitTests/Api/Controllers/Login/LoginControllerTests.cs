@@ -1,4 +1,3 @@
-using Api.Contracts.Validation;
 using Api.Controllers.Login;
 using Api.Presenters;
 using Application.UseCases.Usuario.Commands.Login;

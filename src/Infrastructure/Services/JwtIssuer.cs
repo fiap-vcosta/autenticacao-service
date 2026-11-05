@@ -12,7 +12,6 @@ public sealed class JwtIssuer : IJwtIssuer, IDisposable
 {
     private readonly JwtIssuerOptions _options;
     private readonly RSA _rsa;
-    private readonly RsaSecurityKey _securityKey;
     private readonly SigningCredentials _signingCredentials;
 
     public JwtIssuer(IOptions<JwtIssuerOptions> options)
@@ -25,8 +24,9 @@ public sealed class JwtIssuer : IJwtIssuer, IDisposable
 
         _rsa = RSA.Create();
         _rsa.ImportFromPem(_options.SigningKeyPem);
-        _securityKey = new RsaSecurityKey(_rsa) { KeyId = _options.KeyId };
-        _signingCredentials = new SigningCredentials(_securityKey, SecurityAlgorithms.RsaSha256);
+        _signingCredentials = new SigningCredentials(
+            new RsaSecurityKey(_rsa) { KeyId = _options.KeyId },
+            SecurityAlgorithms.RsaSha256);
     }
 
     public string IssueStaffToken(string login, string papel, string userId)
