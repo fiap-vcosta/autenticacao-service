@@ -1,0 +1,54 @@
+services:
+  firestore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: >
+      gcloud beta emulators firestore start
+      --host-port=0.0.0.0:8080
+      --project=${FIRESTORE_PROJECT_ID:?FIRESTORE_PROJECT_ID is required}
+    ports:
+      - "8085:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  api:
+    profiles:
+      - app
+    build:
+      context: .
+      secrets:
+        - nuget_token
+    ports:
+      - "8081:8080"
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:?ASPNETCORE_ENVIRONMENT is required}
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+      Firestore__ProjectId: ${FIRESTORE_PROJECT_ID:?FIRESTORE_PROJECT_ID is required}
+      Firestore__DatabaseId: "(default)"
+      Jwt__SigningKeyPem: ${JWT_SIGNING_KEY_PEM:?JWT_SIGNING_KEY_PEM is required}
+      Jwt__KeyId: ${JWT_KEY_ID:-autenticacao-2026}
+      Jwt__Funcionario__Issuer: ${JWT_ISSUER:?JWT_ISSUER is required}
+      Jwt__Funcionario__Audience: ${JWT_AUDIENCE_FUNCIONARIO:?JWT_AUDIENCE_FUNCIONARIO is required}
+      Jwt__Cliente__Issuer: ${JWT_ISSUER:?JWT_ISSUER is required}
+      Jwt__Cliente__Audience: ${JWT_AUDIENCE_CLIENTE:?JWT_AUDIENCE_CLIENTE is required}
+      Administrativo__BaseUrl: ${ADMINISTRATIVO_BASE_URL:-http://host.docker.internal:8080}
+      ServiceAuth__Key: ${SERVICE_AUTH_KEY:?SERVICE_AUTH_KEY is required}
+      DD_SERVICE: autenticacao-service
+      DD_ENV: local
+      DD_LOGS_INJECTION: "true"
+      DD_API_KEY: ${DD_API_KEY:-}
+      DD_SITE: ${DD_SITE:-datadoghq.com}
+      DD_AGENT_HOST: ${DD_AGENT_HOST:-127.0.0.1}
+    depends_on:
+      firestore:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+secrets:
+  nuget_token:
+    environment: NUGET_AUTH_TOKEN

@@ -67,6 +67,34 @@ public class JwtIssuerTests
             new JwtIssuer(Options.Create(new JwtIssuerOptions())));
     }
 
+    [Fact]
+    public void Constructor_AcceptsEscapedNewlinesInPem()
+    {
+        // Arrange
+        using var rsa = RSA.Create(2048);
+        var escaped = rsa.ExportRSAPrivateKeyPem().Replace("\n", "\\n", StringComparison.Ordinal);
+
+        // Act
+        using var issuer = new JwtIssuer(Options.Create(new JwtIssuerOptions
+        {
+            SigningKeyPem = escaped,
+            KeyId = "autenticacao-2026",
+            Funcionario = new JwtAudienceOptions
+            {
+                Issuer = "autenticacao-service",
+                Audience = "funcionario"
+            },
+            Cliente = new JwtAudienceOptions
+            {
+                Issuer = "autenticacao-service",
+                Audience = "cliente"
+            }
+        }));
+
+        // Assert
+        Assert.False(string.IsNullOrWhiteSpace(issuer.IssueStaffToken("admin", "Admin", "1")));
+    }
+
     private static JwtIssuer CreateIssuer(out RsaSecurityKey publicKey)
     {
         using var rsa = RSA.Create(2048);
