@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: autenticacao-service
+  namespace: tech-challenge
+spec:
+  type: ClusterIP
+  selector:
+    app: autenticacao-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
