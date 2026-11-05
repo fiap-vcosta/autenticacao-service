@@ -23,7 +23,10 @@ public sealed class JwtIssuer : IJwtIssuer, IDisposable
         }
 
         _rsa = RSA.Create();
-        _rsa.ImportFromPem(_options.SigningKeyPem);
+        var pem = _options.SigningKeyPem
+            .Replace("\\r\\n", "\n", StringComparison.Ordinal)
+            .Replace("\\n", "\n", StringComparison.Ordinal);
+        _rsa.ImportFromPem(pem);
         _signingCredentials = new SigningCredentials(
             new RsaSecurityKey(_rsa) { KeyId = _options.KeyId },
             SecurityAlgorithms.RsaSha256);

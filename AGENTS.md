@@ -37,5 +37,8 @@ dotnet test tests/UnitTests/UnitTests.csproj -c Release \
  "/p:ThresholdStat=minimum"
 dotnet test tests/IntegrationTests/IntegrationTests.csproj -c Release
 ./scripts/setup-local-jwt.sh
+docker compose up firestore -d
+export FIRESTORE_EMULATOR_HOST=127.0.0.1:8085
 dotnet run --project src/Api/Api.csproj
+# Compose completo: docker compose --profile app up --build  → :8081
 ```

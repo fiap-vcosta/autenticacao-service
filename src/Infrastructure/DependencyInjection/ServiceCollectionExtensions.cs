@@ -1,5 +1,6 @@
 using Application.Abstractions.Gateways;
 using Application.Abstractions.Services;
+using Google.Api.Gax;
 using Google.Cloud.Firestore;
 using Infrastructure.Firestore;
 using Infrastructure.Http;
@@ -33,7 +34,8 @@ public static class ServiceCollectionExtensions
             var builder = new FirestoreDbBuilder
             {
                 ProjectId = options.ProjectId,
-                DatabaseId = options.DatabaseId
+                DatabaseId = options.DatabaseId,
+                EmulatorDetection = EmulatorDetection.EmulatorOrProduction
             };
             return builder.Build();
         });

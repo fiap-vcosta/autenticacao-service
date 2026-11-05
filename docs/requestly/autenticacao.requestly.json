@@ -1,0 +1,274 @@
+{
+  "meta": {
+    "version": "1.1.0",
+    "exportedAt": "2026-11-05T00:00:00.000Z",
+    "exportedUsing": "Requestly API Client"
+  },
+  "records": [
+    {
+      "id": "b1000001-0000-4000-8000-000000000001",
+      "name": "autenticacao-service",
+      "type": "collection",
+      "parentId": null,
+      "deleted": false,
+      "data": {
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a0",
+      "description": "Login staff (admin/admin), JWKS e JWT cliente. Token cliente exige administrativo no ar com o mesmo SERVICE_AUTH_KEY e um cliente cadastrado (documento). Environments: Docker (localhost:8081), Local (dotnet run :8080), GCP."
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000010",
+      "name": "01-health",
+      "type": "collection",
+      "parentId": "b1000001-0000-4000-8000-000000000001",
+      "deleted": false,
+      "data": {
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a0",
+      "description": "Health check (sem auth)."
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000011",
+      "name": "health",
+      "type": "api",
+      "parentId": "b1000001-0000-4000-8000-000000000010",
+      "deleted": false,
+      "data": {
+        "type": "http",
+        "request": {
+          "url": "{{baseUrl}}/autenticacao/health",
+          "method": "GET",
+          "headers": [],
+          "queryParams": [],
+          "pathVariables": [],
+          "body": {
+            "contentType": "none"
+          },
+          "contentType": "none"
+        },
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a0"
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000020",
+      "name": "02-jwks",
+      "type": "collection",
+      "parentId": "b1000001-0000-4000-8000-000000000001",
+      "deleted": false,
+      "data": {
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a1",
+      "description": "Chave pública RS256."
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000021",
+      "name": "jwks",
+      "type": "api",
+      "parentId": "b1000001-0000-4000-8000-000000000020",
+      "deleted": false,
+      "data": {
+        "type": "http",
+        "request": {
+          "url": "{{baseUrl}}/autenticacao/.well-known/jwks.json",
+          "method": "GET",
+          "headers": [],
+          "queryParams": [],
+          "pathVariables": [],
+          "body": {
+            "contentType": "none"
+          },
+          "contentType": "none"
+        },
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a0"
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000030",
+      "name": "03-login",
+      "type": "collection",
+      "parentId": "b1000001-0000-4000-8000-000000000001",
+      "deleted": false,
+      "data": {
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a2",
+      "description": "Seed idempotente: admin / admin."
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000031",
+      "name": "POST login",
+      "type": "api",
+      "parentId": "b1000001-0000-4000-8000-000000000030",
+      "deleted": false,
+      "data": {
+        "type": "http",
+        "request": {
+          "url": "{{baseUrl}}/autenticacao/login",
+          "method": "POST",
+          "headers": [
+            {
+              "id": 1,
+              "key": "Content-Type",
+              "value": "application/json",
+              "isEnabled": true,
+              "description": ""
+            }
+          ],
+          "queryParams": [],
+          "pathVariables": [],
+          "body": {
+            "contentType": "raw",
+            "raw": "{\n  \"login\": \"admin\",\n  \"senha\": \"admin\"\n}",
+            "rawContentType": "application/json"
+          },
+          "contentType": "raw"
+        },
+        "auth": {
+          "type": "inherit"
+        },
+        "scripts": {
+          "postResponse": "var j = rq.response.json(); if (j && j.token) { rq.environment.set(\"token\", j.token); }"
+        }
+      },
+      "rank": "a0"
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000040",
+      "name": "04-cliente-token",
+      "type": "collection",
+      "parentId": "b1000001-0000-4000-8000-000000000001",
+      "deleted": false,
+      "data": {
+        "auth": {
+          "type": "inherit"
+        }
+      },
+      "rank": "a3",
+      "description": "Consulta GET /system/administrativo/clientes/por-documento/{documento}. Cadastre o cliente no administrativo antes."
+    },
+    {
+      "id": "b1000001-0000-4000-8000-000000000041",
+      "name": "POST clientes/token",
+      "type": "api",
+      "parentId": "b1000001-0000-4000-8000-000000000040",
+      "deleted": false,
+      "data": {
+        "type": "http",
+        "request": {
+          "url": "{{baseUrl}}/autenticacao/clientes/token",
+          "method": "POST",
+          "headers": [
+            {
+              "id": 1,
+              "key": "Content-Type",
+              "value": "application/json",
+              "isEnabled": true,
+              "description": ""
+            }
+          ],
+          "queryParams": [],
+          "pathVariables": [],
+          "body": {
+            "contentType": "raw",
+            "raw": "{\n  \"documento\": \"{{documento}}\"\n}",
+            "rawContentType": "application/json"
+          },
+          "contentType": "raw"
+        },
+        "auth": {
+          "type": "inherit"
+        },
+        "scripts": {
+          "postResponse": "var j = rq.response.json(); if (j && j.token) { rq.environment.set(\"clienteToken\", j.token); }"
+        }
+      },
+      "rank": "a0"
+    }
+  ],
+  "environments": [
+    {
+      "id": "b1000001-0000-4000-8000-0000000000e1",
+      "name": "Docker",
+      "variables": {
+        "baseUrl": {
+          "type": "string",
+          "syncValue": "http://localhost:8081"
+        },
+        "token": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "clienteToken": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "documento": {
+          "type": "string",
+          "syncValue": "86421537090"
+        }
+      }
+    },
+    {
+      "id": "b1000001-0000-4000-8000-0000000000e2",
+      "name": "Local",
+      "variables": {
+        "baseUrl": {
+          "type": "string",
+          "syncValue": "http://localhost:8080"
+        },
+        "token": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "clienteToken": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "documento": {
+          "type": "string",
+          "syncValue": "86421537090"
+        }
+      }
+    },
+    {
+      "id": "b1000001-0000-4000-8000-0000000000e3",
+      "name": "GCP",
+      "variables": {
+        "baseUrl": {
+          "type": "string",
+          "syncValue": "https://vcosta-fiap.online"
+        },
+        "token": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "clienteToken": {
+          "type": "secret",
+          "syncValue": ""
+        },
+        "documento": {
+          "type": "string",
+          "syncValue": "86421537090"
+        }
+      }
+    }
+  ],
+  "packages": []
+}
