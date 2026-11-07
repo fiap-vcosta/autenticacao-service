@@ -89,7 +89,7 @@ Root module: [`terraform/`](terraform/). State GCS prefix `autenticacao-service`
 
 Uma única chave assina JWT staff e cliente (claims/audiences distintos). A chave privada passa pelo tfstate ao gerar o secret (risco aceito na demo; sem rotação).
 
-`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem`) e dos org secrets `SERVICE_AUTH_KEY` + `DD_API_KEY`. Modelo 1: a mesma `SERVICE_AUTH_KEY` da org é a malha `X-Service-Key` (outbound deste serviço e inbound dos callees).
+`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem`) e dos org secrets `SERVICE_AUTH_KEY` + `DD_API_KEY`. A mesma `SERVICE_AUTH_KEY` da org é a chave da malha `X-Service-Key` (outbound deste serviço e inbound dos callees).
 
 ## CD (GCP)
 
