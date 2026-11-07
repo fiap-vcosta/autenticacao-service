@@ -14,7 +14,7 @@ jobs:
       image_name: autenticacao-service
       deployment_name: autenticacao-service
       smoke_url: https://vcosta-fiap.online/autenticacao/health
-      service_auth_sm_secret: administrativo-service-service-auth-key
       jwt_signing_key_sm_secret: autenticacao-service-jwt-signing-key
     secrets:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      SERVICE_AUTH_KEY: ${{ secrets.SERVICE_AUTH_KEY }}
