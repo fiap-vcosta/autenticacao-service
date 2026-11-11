@@ -1,12 +1,11 @@
 {
-  "name": "demo \u2014 health autenticacao-service",
+  "name": "[autenticacao] health",
   "type": "query alert",
   "query": "sum(last_5m):sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod,resource_name:get_/autenticacao/health}.as_count() < 1",
-  "message": "{{#is_alert}}Sem hits em `GET /autenticacao/health` nos \u00faltimos 5 minutos \u2014 `autenticacao-service` pode estar fora do ar.{{/is_alert}}\n{{#is_recovery}}Health voltou a receber hits.{{/is_recovery}}",
+  "message": "{{#is_alert}}Sem hits em `GET /autenticacao/health` nos últimos 5 minutos — `autenticacao-service` pode estar fora do ar.{{/is_alert}}\n{{#is_recovery}}Health voltou a receber hits.{{/is_recovery}}",
   "tags": [
     "service:autenticacao-service",
-    "env:prod",
-    "demo:tech-challenge"
+    "env:prod"
   ],
   "options": {
     "thresholds": {
