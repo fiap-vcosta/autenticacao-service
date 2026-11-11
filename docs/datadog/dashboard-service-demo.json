@@ -1,0 +1,299 @@
+{
+  "title": "[autenticacao] dashboard",
+  "description": "Dashboard de `autenticacao-service`: monitores, APIs (golden metrics), runtime, Pub/Sub/DLQ quando houver, Cloud SQL ou Firestore, e insights de negócio.",
+  "layout_type": "ordered",
+  "reflow_type": "auto",
+  "widgets": [
+    {
+      "definition": {
+        "title": "Monitores",
+        "background_color": "purple",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "manage_status",
+              "query": "name:[autenticacao]*",
+              "display_format": "counts",
+              "color_preference": "background",
+              "hide_zero_counts": false,
+              "show_last_triggered": true,
+              "show_priority": true,
+              "show_status": true,
+              "sort": "status,asc",
+              "count": 50,
+              "start": 0,
+              "summary_type": "monitors",
+              "title": "Monitores [autenticacao]",
+              "title_size": "16",
+              "title_align": "left"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "APIs (golden metrics)",
+        "background_color": "vivid_blue",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Latência p95 (traffic latency)",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "p95:trace.aspnet_core.request{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Tráfego — hits",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Erros",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.errors{service:autenticacao-service,env:prod}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Taxa de erro (errors / hits)",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "(sum:trace.aspnet_core.request.errors{service:autenticacao-service,env:prod}.as_count() / sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod}.as_count())",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Health hits",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod,resource_name:get_/autenticacao/health}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Top resources — latência p95",
+              "type": "toplist",
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "apm_metrics",
+                      "name": "q1",
+                      "stat": "latency_p95",
+                      "service": "autenticacao-service",
+                      "group_by": [
+                        "resource_name"
+                      ],
+                      "query_filter": "env:prod"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "q1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Top resources — hits",
+              "type": "toplist",
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "apm_metrics",
+                      "name": "q1",
+                      "stat": "hits",
+                      "service": "autenticacao-service",
+                      "group_by": [
+                        "resource_name"
+                      ],
+                      "query_filter": "env:prod"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "q1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Top resources — erros",
+              "type": "toplist",
+              "requests": [
+                {
+                  "response_format": "scalar",
+                  "queries": [
+                    {
+                      "data_source": "apm_metrics",
+                      "name": "q1",
+                      "stat": "errors",
+                      "service": "autenticacao-service",
+                      "group_by": [
+                        "resource_name"
+                      ],
+                      "query_filter": "env:prod"
+                    }
+                  ],
+                  "formulas": [
+                    {
+                      "formula": "q1",
+                      "limit": {
+                        "count": 10,
+                        "order": "desc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Aplicação",
+        "background_color": "blue",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "Runtime .NET — CPU %",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "avg:runtime.dotnet.cpu.percent{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Runtime .NET — memória committed",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "avg:runtime.dotnet.mem.committed{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Banco de dados (Firestore)",
+        "background_color": "gray",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "title": "API request count",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:gcp.firestore.api.request_count{project_id:vcosta-fiap-tech-challenge,database_id:autenticacao} by {api_method}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "API request latency avg",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "avg:gcp.firestore.api.request_latencies.avg{project_id:vcosta-fiap-tech-challenge,database_id:autenticacao} by {api_method}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Document reads",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:gcp.firestore.document.read_count{project_id:vcosta-fiap-tech-challenge,database_id:autenticacao}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Document writes",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:gcp.firestore.document.write_count{project_id:vcosta-fiap-tech-challenge,database_id:autenticacao}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
