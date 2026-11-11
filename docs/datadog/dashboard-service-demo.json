@@ -1,65 +1,245 @@
 {
   "title": "[autenticacao] dashboard",
-  "description": "Dashboard do serviço `autenticacao-service` na janela GCP (APM + logs). Dashboard geral da Saga: e2e/docs/datadog/.",
+  "description": "Dashboard de `autenticacao-service` com grupos coloridos: monitores, aplicação, eventos entrada/saída, DLQ, banco e negócio. Pub/Sub e Cloud SQL exigem integração GCP no Datadog.",
   "layout_type": "ordered",
   "reflow_type": "auto",
   "widgets": [
     {
       "definition": {
-        "title": "Latência p95 (APM)",
-        "type": "timeseries",
-        "requests": [
+        "title": "Monitores",
+        "background_color": "purple",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
           {
-            "q": "p95:trace.aspnet_core.request{service:autenticacao-service,env:prod}",
-            "display_type": "line"
+            "definition": {
+              "type": "manage_status",
+              "query": "name:[autenticacao]*",
+              "display_format": "counts",
+              "color_preference": "background",
+              "hide_zero_counts": false,
+              "show_last_triggered": true,
+              "show_priority": true,
+              "show_status": true,
+              "sort": "status,asc",
+              "count": 50,
+              "start": 0,
+              "summary_type": "monitors",
+              "title": "Monitores [autenticacao]",
+              "title_size": "16",
+              "title_align": "left"
+            }
+          },
+          {
+            "definition": {
+              "type": "note",
+              "content": "Importe os JSON `monitor-*.json` deste repo antes. Query do widget: `name:[autenticacao]*` (tags `service:autenticacao-service` / `env:prod`).",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
           }
         ]
       }
     },
     {
       "definition": {
-        "title": "Erros HTTP (APM)",
-        "type": "timeseries",
-        "requests": [
+        "title": "Aplicação",
+        "background_color": "vivid_blue",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
           {
-            "q": "sum:trace.aspnet_core.request.errors{service:autenticacao-service,env:prod}.as_count()",
-            "display_type": "bars"
+            "definition": {
+              "title": "Latência p95 (APM)",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "p95:trace.aspnet_core.request{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Erros HTTP (APM)",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.errors{service:autenticacao-service,env:prod}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Hits HTTP (APM)",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Health hits",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod,resource_name:get_/autenticacao/health}.as_count()",
+                  "display_type": "bars"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Runtime .NET — CPU %",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "avg:runtime.dotnet.cpu.percent{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
+          },
+          {
+            "definition": {
+              "title": "Runtime .NET — memória committed",
+              "type": "timeseries",
+              "requests": [
+                {
+                  "q": "avg:runtime.dotnet.mem.committed{service:autenticacao-service,env:prod}",
+                  "display_type": "line"
+                }
+              ]
+            }
           }
         ]
       }
     },
     {
       "definition": {
-        "title": "Hits HTTP (APM)",
-        "type": "timeseries",
-        "requests": [
+        "title": "Eventos de entrada (consume)",
+        "background_color": "orange",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
           {
-            "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod}.as_count()",
-            "display_type": "bars"
+            "definition": {
+              "type": "note",
+              "content": "`autenticacao-service` não consome Pub/Sub.",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
           }
         ]
       }
     },
     {
       "definition": {
-        "title": "Runtime .NET — CPU %",
-        "type": "timeseries",
-        "requests": [
+        "title": "Dead-letter (DLQ)",
+        "background_color": "pink",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
           {
-            "q": "avg:runtime.dotnet.cpu.percent{service:autenticacao-service,env:prod}",
-            "display_type": "line"
+            "definition": {
+              "type": "note",
+              "content": "Sem subscriptions → sem DLQ neste serviço.",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
           }
         ]
       }
     },
     {
       "definition": {
-        "title": "Runtime .NET — memória committed",
-        "type": "timeseries",
-        "requests": [
+        "title": "Eventos de saída (publish)",
+        "background_color": "green",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
           {
-            "q": "avg:runtime.dotnet.mem.committed{service:autenticacao-service,env:prod}",
-            "display_type": "line"
+            "definition": {
+              "type": "note",
+              "content": "`autenticacao-service` não publica Pub/Sub.",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Banco de dados",
+        "background_color": "gray",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "`autenticacao-service` usa Firestore (métricas Cloud SQL não se aplicam). Integração GCP necessária se quiser métricas Firestore.",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Insights de negócio",
+        "background_color": "yellow",
+        "show_title": true,
+        "type": "group",
+        "layout_type": "ordered",
+        "widgets": [
+          {
+            "definition": {
+              "type": "note",
+              "content": "Sem widgets de negócio específicos neste serviço.",
+              "background_color": "white",
+              "font_size": "14",
+              "text_align": "left",
+              "vertical_align": "top",
+              "show_tick": false,
+              "has_padding": true
+            }
           }
         ]
       }
