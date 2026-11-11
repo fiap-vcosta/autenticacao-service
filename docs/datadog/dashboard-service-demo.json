@@ -1,0 +1,68 @@
+{
+  "title": "Tech Challenge \u2014 autenticacao-service (demo)",
+  "description": "Dashboard do servi\u00e7o `autenticacao-service` na janela de demo (APM + logs). Dashboard geral da Saga: e2e/docs/datadog/.",
+  "layout_type": "ordered",
+  "reflow_type": "auto",
+  "widgets": [
+    {
+      "definition": {
+        "title": "Lat\u00eancia p95 (APM)",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "p95:trace.aspnet_core.request{service:autenticacao-service,env:prod}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Erros HTTP (APM)",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:trace.aspnet_core.request.errors{service:autenticacao-service,env:prod}.as_count()",
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Hits HTTP (APM)",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:trace.aspnet_core.request.hits{service:autenticacao-service,env:prod}.as_count()",
+            "display_type": "bars"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Runtime .NET \u2014 CPU %",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:runtime.dotnet.cpu.percent{service:autenticacao-service,env:prod}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "title": "Runtime .NET \u2014 mem\u00f3ria committed",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:runtime.dotnet.mem.committed{service:autenticacao-service,env:prod}",
+            "display_type": "line"
+          }
+        ]
+      }
+    }
+  ]
+}
