@@ -36,7 +36,7 @@ try
 
     app.MapGet("/autenticacao/health", () => Results.Ok("OK"));
 
-    app.Run();
+    await app.RunAsync();
 
     static void TryLoadLocalJwtSigningKey(WebApplicationBuilder webApplicationBuilder)
     {
@@ -61,7 +61,7 @@ catch (Exception ex)
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
 
 public partial class Program;
