@@ -43,7 +43,7 @@ public sealed class AdministrativoClienteGateway(HttpClient httpClient) : IAdmin
             []);
     }
 
-    private static IReadOnlyList<string> ParseErrors(string json)
+    private static List<string> ParseErrors(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {

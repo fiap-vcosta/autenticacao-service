@@ -1,4 +1,3 @@
-using Application.Abstractions.Services;
 using Domain.Entities;
 using Infrastructure.Firestore;
 using Infrastructure.Services;
@@ -15,7 +14,7 @@ public class FirestoreUsuarioGatewayTests
         var store = new Mock<IUsuarioRecordStore>();
         store.Setup(s => s.FindByLoginAsync("admin", It.IsAny<CancellationToken>()))
             .ReturnsAsync((Usuario?)null);
-        IPasswordHasher hasher = new PasswordHasher();
+        var hasher = new PasswordHasher();
         var gateway = new FirestoreUsuarioGateway(store.Object, hasher);
 
         // Act
