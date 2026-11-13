@@ -1,6 +1,7 @@
 # autenticacao-service
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=fiap-vcosta_autenticacao-service)](https://sonarcloud.io/summary/new_code?id=fiap-vcosta_autenticacao-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=fiap-vcosta_autenticacao-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=fiap-vcosta_autenticacao-service)
 [![Reliability](https://sonarcloud.io/api/project_badges/measure?project=fiap-vcosta_autenticacao-service&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=fiap-vcosta_autenticacao-service)
 [![Security](https://sonarcloud.io/api/project_badges/measure?project=fiap-vcosta_autenticacao-service&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=fiap-vcosta_autenticacao-service)
 [![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=fiap-vcosta_autenticacao-service&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=fiap-vcosta_autenticacao-service)
@@ -12,7 +13,10 @@ com JWKS para os demais serviços validarem a assinatura. O documento do cliente
 
 Stack: .NET 8 e Firestore (database nomeado). Org [fiap-vcosta](https://github.com/fiap-vcosta).
 
-Requisitos: [`docs/01_requisitos.md`](docs/01_requisitos.md).
+- Requisitos: [`docs/01_requisitos.md`](docs/01_requisitos.md)
+- Domínio (linguagem + modelo): [`e2e` / docs/dominio/autenticacao](https://github.com/fiap-vcosta/e2e/blob/main/docs/dominio/autenticacao.md)
+- ADR RS256/JWKS: [`docs/adrs/001-rs256-jwks.md`](docs/adrs/001-rs256-jwks.md)
+- Firestore nomeado: [`e2e` ADR 002](https://github.com/fiap-vcosta/e2e/blob/main/docs/adrs/002-firestore-databases-nomeados.md)
 
 ## Layout
 
@@ -51,16 +55,18 @@ docker compose up firestore -d
 export FIRESTORE_EMULATOR_HOST=127.0.0.1:8085
 dotnet run --project src/Api/Api.csproj
 # → http://localhost:8080/autenticacao/health
+# Swagger: http://localhost:8080/swagger
 
 # API + emulador no Compose (porta 8081; administrativo no host em :8080)
 # No .env: ADMINISTRATIVO_BASE_URL=http://host.docker.internal:8080
 docker compose --profile app up --build
 # → http://localhost:8081/autenticacao/health
+# Swagger: http://localhost:8081/swagger
 ```
 
-JWT cliente: suba o `administrativo-service` com o **mesmo** `SERVICE_AUTH_KEY`, cadastre um cliente (Requestly do administrativo) e chame `POST /autenticacao/clientes/token`.
+JWT cliente: suba o `administrativo-service` com o **mesmo** `SERVICE_AUTH_KEY`, cadastre um cliente (Requestly do administrativo ou [`e2e`](https://github.com/fiap-vcosta/e2e/tree/main/docs/requestly)) e chame `POST /autenticacao/clientes/token`.
 
-Requestly: importar [`docs/requestly/autenticacao.requestly.json`](docs/requestly/autenticacao.requestly.json).
+Requestly deste serviço: [`docs/requestly/`](docs/requestly/). Sistema: [`e2e/docs/requestly/`](https://github.com/fiap-vcosta/e2e/tree/main/docs/requestly).
 
 Localmente o Firestore usa o database `(default)` do emulador. Na GCP o database nomeado é `autenticacao`.
 
@@ -95,7 +101,9 @@ Root module: [`terraform/`](terraform/). State GCS prefix `autenticacao-service`
 
 Uma única chave assina JWT staff e cliente (claims/audiences distintos). A chave privada passa pelo tfstate ao gerar o secret (risco aceito na demo; sem rotação).
 
-`tf-apply` / `tf-destroy` são manuais. O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem`) e dos org secrets `SERVICE_AUTH_KEY` + `DD_API_KEY`. A mesma `SERVICE_AUTH_KEY` da org é a chave da malha `X-Service-Key` (outbound deste serviço e inbound dos callees).
+`tf-apply` / `tf-destroy` / `deploy` são **manuais de propósito** (custo da janela GCP). CI e `build-push` seguem automáticos. Narrativa: [`e2e` ADR 006](https://github.com/fiap-vcosta/e2e/blob/main/docs/adrs/006-deploy-demo-manuais-custo.md).
+
+O `deploy` monta o Secret Kubernetes a partir do SM (`Jwt__SigningKeyPem`) e dos org secrets `SERVICE_AUTH_KEY` + `DD_API_KEY`. A mesma `SERVICE_AUTH_KEY` da org é a chave da malha `X-Service-Key` (outbound deste serviço e inbound dos callees).
 
 ## CD (GCP)
 
